@@ -5,12 +5,12 @@ const fs    =   require('fs');
 
 const search    = url =>{
     url=url.trim();
-    if(Urls.url){
-        console.log(Urls.url);
+    if(Urls.hasOwnProperty(url)){
+        console.log(Urls[url]);
         return {
                 availability    :   true,
                 original_url    :   url,
-                short_url       :   Urls.url
+                short_url       :   Urls[url]
             };
     }else{
         return {
@@ -25,7 +25,9 @@ const searchUrl = url=>{
     let shortUrls      =    Object.keys(Urls);
     let originalUrl    =    shortUrls.find(key => Urls[key] === url);
     console.log(`url is ${originalUrl}`);
+    
     return originalUrl;
+
 }
 
 
@@ -44,9 +46,7 @@ const addUrl   =  url =>{
         console.log("Error While Writting to File");
         console.log(error);
     }
-    return  {
-        short_url   :   length+1
-    }
+    return  length+1
 }
 
 
