@@ -5,7 +5,7 @@ const app = express();
 const {search,addUrl,searchUrl} = require('./utils')
 // Basic Configuration
 const port = process.env.PORT || 3000;
-
+const URL = require('url').URL
 app.use(cors());
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
@@ -16,8 +16,27 @@ app.get('/', function(req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
 });
 
+const isValidURL  = url =>{
+  url = url.trim();
+  try {
+    let urlObject = new URL(url);
+      let protocol  =urlObject.protocol.toString().replace(":","");
+     if((protocol!=='https'))
+        return false;
+    
+    return true;
+  } catch (error) {
+    console.log(error);
+    return true
+  }
+
+}
+
+
 // Your first API endpoint
-app.get('/api/hello', function(req, res) {
+app.post('/api/shortur', function(req, res) {
+  let url = req.body.url;
+  isValidURL(url);
   res.json({ greeting: 'hello API' });
 });
 
@@ -31,7 +50,10 @@ app.post('/api/shorturl',(req,res)=>{
 
   let searchResult  = search(url);
   console.log("Search Result",searchResult);
-  if(searchResult.availability===true){
+  if(isValidURL(url)!==true){
+    result  = { error: 'invalid url' };
+  }
+  else if(searchResult.availability===true){
     let short_url = searchResult.short_url;
     result  = {
       ...result,
@@ -54,13 +76,20 @@ app.get('/api/shorturl/:short_url',(req,res)=>{
   short_url     = Number(short_url);
   let searchResult  = searchUrl(short_url)
   console.log(typeof searchResult);
-  if(typeof searchResult!=="undefined")res.redirect(`${searchResult}`);
+ try {
+   
+   if(typeof searchResult!=="undefined"){
+    if(isValidURL(searchResult)==true){
+      res.redirect(`${searchResult}`);
+    }
+   }
+   console.log("Invalid Url",searchResult);
+   throw Error("Invalid Url");
+  } catch (error) {
+   result= { error: 'invalid url' };
+   res.json(result).end();
   
-  console.log("Invalid Url",searchResult);
-  result= { error: 'invalid url' };
-  
-  
-  res.json(result).end();
+ }
   
 })
 
